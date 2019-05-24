@@ -4,11 +4,14 @@ import {
 } from 'test/TestHelper';
 
 import coreModule from 'lib/core';
+import createModule from 'diagram-js/lib/features/create';
+import draggingModule from 'diagram-js/lib/features/create';
 import modelingModule from 'lib/features/modeling';
 import replaceModule from 'lib/features/replace';
 import copyPasteModule from 'lib/features/copy-paste';
-import { is } from 'lib/util/ModelUtil';
 
+import { is } from 'lib/util/ModelUtil';
+import { createCanvasEvent as canvasEvent } from 'test/util/MockEvents';
 
 describe('features/modeling/behavior - subprocess start event', function() {
 
@@ -17,6 +20,8 @@ describe('features/modeling/behavior - subprocess start event', function() {
   beforeEach(bootstrapModeler(diagramXML, {
     modules: [
       coreModule,
+      createModule,
+      draggingModule,
       modelingModule,
       replaceModule,
       copyPasteModule
@@ -27,23 +32,31 @@ describe('features/modeling/behavior - subprocess start event', function() {
   describe('create', function() {
 
     it('should contain start event child', inject(
-      function(canvas, modeling) {
+      function(elementFactory, create, dragging) {
 
         // given
-        var rootElement = canvas.getRootElement(),
-            expandedSubProcess,
-            startEvents;
-
-        // when
-        expandedSubProcess = modeling.createShape({
+        var subProcess = elementFactory.createShape({
           type: 'bpmn:SubProcess',
           isExpanded: true
-        }, { x: 650, y: 150 }, rootElement);
+        });
+
+        // when
+        create.start(canvasEvent({ x: 0, y: 0 }), subProcess);
+
+        dragging.move(canvasEvent({ x: 600, y: 150 }));
+
+        // TODO: The argument here needs to be a mouse event
+        // in order to create the shape on the canvas. This
+        // currently does not work.
+        dragging.end(canvasEvent({ x: 600, y: 150 }));
 
         // then
-        startEvents = getChildStartEvents(expandedSubProcess);
 
-        expect(startEvents).to.have.length(1);
+        // TODO: Grab newly created expanded subprocess
+        // TODO: expect it contains a start event
+
+        // Explicit fail so this does not go unnoticed.
+        expect(true).to.be.false;
       }
     ));
 
